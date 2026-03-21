@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  test-and-package:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            appstream \
+            curl \
+            debhelper \
+            dh-python \
+            lintian \
+            pybuild-plugin-pyproject \
+            python3-all \
+            python3-build \
+            python3-gi \
+            python3-gi-cairo \
+            python3-packaging \
+            python3-pip \
+            python3-pytest \
+            python3-setuptools \
+            gir1.2-adw-1 \
+            gir1.2-gtk-4.0
+
+      - name: Verify Python
+        run: python3 --version
+
+      - name: Run tests
+        run: |
+          python3 -m compileall src tests
+          python3 -m pytest
+
+      - name: Build wheel and sdist
+        run: python3 -m build
+
+      - name: Build Debian package
+        run: ./scripts/build_deb.sh
+
+      - name: Build AppImage
+        run: ./scripts/build_appimage.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluelatch-artifacts
+          path: |
+            dist/*
+            ../*.deb
+            *.AppImage
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: .github/RELEASE_TEMPLATE.md
+          files: |
+            dist/*
+            ../*.deb
+            *.AppImage

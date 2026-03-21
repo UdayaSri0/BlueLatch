@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.UdayaSri.BlueLatch</id>
+  <name>BlueLatch</name>
+  <summary>Linux Bluetooth proximity lock</summary>
+  <description>
+    <p>
+      BlueLatch locks an Ubuntu GNOME session when a trusted Bluetooth phone is no longer nearby.
+      It never auto-unlocks the system and suppresses repeated re-locking after a manual unlock until the phone returns.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.UdayaSri.BlueLatch.desktop</launchable>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <url type="homepage">https://github.com/UdayaSri0/BlueLatch</url>
+  <url type="bugtracker">https://github.com/UdayaSri0/BlueLatch/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-03-21"/>
+  </releases>
+</component>

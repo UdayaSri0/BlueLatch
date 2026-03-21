@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="BlueLatch icon">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f5da6"/>
+      <stop offset="100%" stop-color="#0a2744"/>
+    </linearGradient>
+    <linearGradient id="lock" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#bg)"/>
+  <path d="M82 111c0-25.4 20.6-46 46-46s46 20.6 46 46v14h12c11 0 20 9 20 20v50c0 11-9 20-20 20H70c-11 0-20-9-20-20v-50c0-11 9-20 20-20h12zm28 0v14h36v-14c0-9.9-8.1-18-18-18s-18 8.1-18 18z" fill="url(#lock)"/>
+  <circle cx="191" cy="73" r="19" fill="#38bdf8"/>
+  <path d="M191 46v54M164 73h54" stroke="#e0f2fe" stroke-width="8" stroke-linecap="round"/>
+</svg>

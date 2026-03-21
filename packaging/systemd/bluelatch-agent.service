@@ -1,0 +1,13 @@
+[Unit]
+Description=BlueLatch background proximity lock agent
+After=graphical-session.target bluetooth.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=bluelatch --agent
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
