@@ -31,8 +31,9 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             appstream \
+            build-essential \
             curl \
             debhelper \
             desktop-file-utils \
@@ -64,6 +65,30 @@ jobs:
 
       - name: Build wheel and sdist
         run: python3 -m build
+
+      - name: Verify Debian build dependencies
+        run: |
+          required_packages=(
+            build-essential
+            debhelper
+            dh-python
+            fakeroot
+            pybuild-plugin-pyproject
+            python3-all
+            python3-build
+            python3-packaging
+            python3-pytest
+            python3-setuptools
+            python3-wheel
+            rsync
+          )
+
+          for package in "${required_packages[@]}"; do
+            dpkg -s "$package" >/dev/null 2>&1 || {
+              echo "Missing Debian package required for build: $package" >&2
+              exit 1
+            }
+          done
 
       - name: Build Debian package
         run: ./scripts/build_deb.sh

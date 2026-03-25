@@ -72,9 +72,11 @@ chmod 0755 "$STAGING_DIR/debian/rules"
 cd "$STAGING_DIR"
 if ! run_with_system_python dpkg-checkbuilddeps; then
   cat >&2 <<'EOF'
+build_deb.sh: Debian Build-Depends come from debian/control and must be installed with apt.
+build_deb.sh: pip-installed Python packages do not satisfy dpkg-checkbuilddeps.
 build_deb.sh: install the Debian packaging prerequisites before retrying, for example:
   sudo apt-get update
-  sudo apt-get install -y debhelper dh-python fakeroot pybuild-plugin-pyproject python3-all python3-build python3-packaging python3-pytest python3-setuptools python3-wheel rsync
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential debhelper dh-python fakeroot pybuild-plugin-pyproject python3-all python3-build python3-packaging python3-pytest python3-setuptools python3-wheel rsync
 EOF
   exit 1
 fi
