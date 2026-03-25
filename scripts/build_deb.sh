@@ -1,11 +1,69 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PACKAGING_DIR="$ROOT_DIR/packaging/debian"
+BUILD_ROOT="$ROOT_DIR/build/debian"
+STAGING_DIR="$BUILD_ROOT/source"
+OUTPUT_DIR="$ROOT_DIR/dist/debian"
 
-rm -rf debian
-cp -r packaging/debian debian
-chmod +x debian/rules
+fail() {
+  echo "build_deb.sh: $*" >&2
+  exit 1
+}
 
-dpkg-buildpackage -us -uc -b
+require_command() {
+  local command_name="$1"
+  command -v "$command_name" >/dev/null 2>&1 || fail "required command not found: $command_name"
+}
+
+require_file() {
+  local file_path="$1"
+  [[ -f "$file_path" ]] || fail "required packaging file is missing: $file_path"
+}
+
+require_command dpkg-buildpackage
+require_command dpkg-checkbuilddeps
+require_command rsync
+
+require_file "$PACKAGING_DIR/control"
+require_file "$PACKAGING_DIR/rules"
+require_file "$PACKAGING_DIR/changelog"
+require_file "$PACKAGING_DIR/copyright"
+require_file "$PACKAGING_DIR/bluelatch.install"
+require_file "$PACKAGING_DIR/source/format"
+
+mkdir -p "$BUILD_ROOT" "$OUTPUT_DIR"
+rm -rf "$STAGING_DIR"
+find "$BUILD_ROOT" -maxdepth 1 -type f \
+  \( -name 'bluelatch_*.deb' -o -name 'bluelatch_*.buildinfo' -o -name 'bluelatch_*.changes' \) \
+  -delete
+find "$OUTPUT_DIR" -maxdepth 1 -type f \
+  \( -name 'bluelatch_*.deb' -o -name 'bluelatch_*.buildinfo' -o -name 'bluelatch_*.changes' \) \
+  -delete
+
+rsync -a \
+  --delete \
+  --exclude='.git/' \
+  --exclude='.github/' \
+  --exclude='.pytest_cache/' \
+  --exclude='__pycache__/' \
+  --exclude='*.pyc' \
+  --exclude='build/' \
+  --exclude='dist/' \
+  --exclude='debian/' \
+  "$ROOT_DIR/" "$STAGING_DIR/"
+
+cp -a "$PACKAGING_DIR" "$STAGING_DIR/debian"
+chmod 0755 "$STAGING_DIR/debian/rules"
+
+cd "$STAGING_DIR"
+dpkg-checkbuilddeps
+dpkg-buildpackage -rfakeroot -us -uc -b
+
+find "$BUILD_ROOT" -maxdepth 1 -type f \
+  \( -name 'bluelatch_*.deb' -o -name 'bluelatch_*.buildinfo' -o -name 'bluelatch_*.changes' \) \
+  -exec mv -f {} "$OUTPUT_DIR/" \;
+
+echo "Debian artifacts are available in $OUTPUT_DIR"

@@ -1,0 +1,38 @@
+Source: bluelatch
+Section: utils
+Priority: optional
+Maintainer: Udaya Sri <105188685+UdayaSri0@users.noreply.github.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ dh-sequence-python3,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-build,
+ python3-packaging,
+ python3-pytest,
+ python3-setuptools,
+ python3-wheel
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://github.com/UdayaSri0/BlueLatch
+
+Package: bluelatch
+Architecture: amd64
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ bluez,
+ gir1.2-adw-1,
+ gir1.2-gtk-4.0,
+ python3-gi
+Recommends:
+ libnotify-bin,
+ xdg-utils
+Description: Linux Bluetooth proximity lock for GNOME desktops
+ BlueLatch watches one trusted Bluetooth phone over BlueZ D-Bus and locks the
+ current desktop session when that phone is no longer nearby.
+ .
+ BlueLatch never auto-unlocks the machine. If the user manually unlocks while
+ the trusted phone is still away, BlueLatch suppresses repeated re-locking
+ until the phone returns and presence stabilizes again.

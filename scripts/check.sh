@@ -6,3 +6,4 @@ cd "$ROOT_DIR"
 
 python3 -m compileall src tests
 python3 -m pytest
+./scripts/check_release_metadata.sh

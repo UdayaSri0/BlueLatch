@@ -6,6 +6,6 @@ Comment=Linux Bluetooth proximity lock
 Exec=bluelatch
 Icon=io.github.UdayaSri.BlueLatch
 Terminal=false
-Categories=Security;System;Settings;
+Categories=Security;Settings;
 Keywords=bluetooth;lock;security;gnome;
 StartupNotify=true

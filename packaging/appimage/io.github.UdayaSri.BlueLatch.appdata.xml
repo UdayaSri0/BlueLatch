@@ -2,6 +2,9 @@
 <component type="desktop-application">
   <id>io.github.UdayaSri.BlueLatch</id>
   <name>BlueLatch</name>
+  <developer id="io.github.udayasri0">
+    <name>Udaya Sri</name>
+  </developer>
   <summary>Linux Bluetooth proximity lock</summary>
   <description>
     <p>
@@ -16,6 +19,6 @@
   <url type="bugtracker">https://github.com/UdayaSri0/BlueLatch/issues</url>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="0.1.0" date="2026-03-21"/>
+    <release version="0.1.1" date="2026-03-25"/>
   </releases>
 </component>

@@ -1,12 +1,12 @@
 # BlueLatch
 
-BlueLatch is a Linux Bluetooth proximity-lock application for Ubuntu 24.04 GNOME.
+BlueLatch is a GNOME-first Linux Bluetooth proximity-lock application for Ubuntu 24.04 and closely related Debian-family desktops.
 
 It watches one trusted phone over BlueZ D-Bus and automatically locks the current desktop session when that phone is no longer nearby. BlueLatch never auto-unlocks the machine.
 
 ## Core Rules
 
-BlueLatch enforces these product rules:
+BlueLatch preserves these product rules:
 
 1. It auto-locks only. It never auto-unlocks.
 2. If BlueLatch locked the session because the phone went away and the user manually unlocks while the phone is still away, BlueLatch does not keep re-locking in a loop.
@@ -14,58 +14,49 @@ BlueLatch enforces these product rules:
 4. Core Bluetooth and session behavior uses Linux APIs and D-Bus, not `bluetoothctl` scraping.
 5. Ubuntu GNOME is the first target, with platform-specific code isolated for future KDE/XFCE backends.
 
-## What It Does
+## What BlueLatch Does
 
 - Monitors one trusted Bluetooth phone.
-- Uses BlueZ D-Bus for device discovery, pairing/trust actions, connection state, and reconnect attempts.
+- Uses BlueZ D-Bus for device discovery, pairing, trust actions, connection state, and reconnect attempts.
 - Uses a hybrid presence model based on connection state plus smoothed RSSI with hysteresis.
-- Applies an explicit protection state machine:
-  - `STARTING`
-  - `PRESENT`
-  - `MAYBE_AWAY`
-  - `AWAY_PENDING_LOCK`
-  - `AWAY_LOCKED`
-  - `AWAY_MANUAL_OVERRIDE`
-  - `RETURNING`
-  - `ERROR`
-- Locks the current session through GNOME/freedesktop D-Bus methods first, then `loginctl` fallback.
+- Applies an explicit protection state machine with `STARTING`, `PRESENT`, `MAYBE_AWAY`, `AWAY_PENDING_LOCK`, `AWAY_LOCKED`, `AWAY_MANUAL_OVERRIDE`, `RETURNING`, and `ERROR`.
+- Locks the current session through GNOME or freedesktop D-Bus methods first, then `loginctl` fallback.
 - Runs as a background agent so protection continues after the settings window closes.
 - Stores per-user config and runtime state under XDG directories with user-only config permissions.
-- Checks GitHub Releases for updates and adapts guidance for AppImage vs Debian installs.
+- Checks GitHub Releases and adapts upgrade guidance for AppImage and Debian-based installs.
 
 ## Supported Platform
 
-Current first-release target:
+Current release target:
 
 - Ubuntu 24.04 GNOME
+- Debian-based desktops with BlueZ, GTK4, libadwaita, and a GNOME-compatible session lock path
 
-Tested and designed assumptions:
+Assumptions for the packaged builds:
 
-- BlueZ available on the system bus
-- GNOME session lock support via `org.gnome.ScreenSaver` or compatible freedesktop fallback
-- `loginctl` available for session fallback handling
-- Python 3.12 runtime target
-- GTK4 + libadwaita available through PyGObject
-
-Future desktop environments can add session lock and session monitor backends without rewriting the core presence logic.
+- `bluetoothd` is available on the system bus.
+- The current session supports GNOME ScreenSaver D-Bus or compatible freedesktop locking.
+- `loginctl` is available as a fallback lock path.
+- Python 3.12 is available on the target system.
+- GTK4 and libadwaita are available through PyGObject.
 
 ## Architecture
 
 BlueLatch is split into two runtime parts.
 
-### 1. Background agent
+### Background Agent
 
 Responsible for:
 
 - BlueZ monitoring and reconnect attempts
-- presence estimation
-- explicit lock state machine
-- session lock triggering
-- manual unlock detection
-- status/event persistence
-- startup runtime behavior
+- Presence estimation
+- Explicit lock state machine handling
+- Session lock triggering
+- Manual unlock detection
+- Status and event persistence
+- Startup runtime behavior
 
-Important modules:
+Key modules:
 
 - `src/bluelatch/agent.py`
 - `src/bluelatch/bluetooth/bluez.py`
@@ -74,19 +65,19 @@ Important modules:
 - `src/bluelatch/session/monitor.py`
 - `src/bluelatch/session/lock.py`
 
-### 2. GTK4/libadwaita desktop UI
+### GTK4/libadwaita Desktop UI
 
 Responsible for:
 
-- onboarding guidance
-- trusted device selection
-- settings
-- live status
-- event history
-- about dialog
-- update dialog
+- Onboarding guidance
+- Trusted device selection
+- Settings
+- Live status
+- Event history
+- About dialog
+- Update dialog
 
-Important modules:
+Key modules:
 
 - `src/bluelatch/ui/window.py`
 - `src/bluelatch/ui/devices.py`
@@ -95,36 +86,7 @@ Important modules:
 - `src/bluelatch/ui/logs.py`
 - `src/bluelatch/ui/updates.py`
 
-### Shared storage model
-
-The UI and agent stay decoupled. The agent writes runtime status and event history to XDG state files. The UI reads those files and writes config changes that the agent reloads automatically.
-
-This keeps the architecture simple, local-first, and resilient when the main window closes.
-
-## Presence and Locking Model
-
-BlueLatch does not treat Bluetooth RSSI as literal distance.
-
-Instead it uses:
-
-- smoothed RSSI samples
-- near/far thresholds
-- hysteresis
-- debounce timers
-- away grace periods
-- explicit reconnect backoff
-
-Modes currently exposed:
-
-- `disconnect_only`
-- `weak_signal_or_disconnect`
-- `hybrid`
-
-The hybrid mode is the default and is intended to absorb short disconnects while still reacting to sustained absence.
-
 ## Manual Override Behavior
-
-This is the most important behavioral rule in the project.
 
 If all of the following are true:
 
@@ -140,7 +102,7 @@ While in `AWAY_MANUAL_OVERRIDE`:
 - BlueLatch does not auto-lock again repeatedly
 - BlueLatch will not clear the override until the phone comes back and presence is stable again
 
-This prevents lock storms.
+This is the main safeguard against lock storms.
 
 ## Security and Privacy
 
@@ -148,126 +110,54 @@ BlueLatch is local-first.
 
 - No cloud service is required.
 - No telemetry is enabled by default.
-- No phone GPS or phone location history is stored.
-- Only necessary Bluetooth identity/config metadata is stored.
+- No phone GPS or location history is stored.
+- Only necessary Bluetooth identity and configuration metadata is stored.
 - Normal runtime does not require root.
 
-### Security limitations
+Security limitations:
 
-Bluetooth proximity is an approximation, not a secure proof of physical presence.
-
-Limitations include:
-
+- Bluetooth proximity is an approximation, not a proof of physical presence.
 - RSSI changes with body position, pockets, walls, desk placement, and radio noise.
 - A phone can remain connected at longer-than-expected ranges.
 - Different Bluetooth chipsets report different RSSI behavior.
-- Suspend/resume, adapter resets, and GNOME lock backends vary across systems.
+- Suspend and resume behavior varies across systems.
 
 BlueLatch should be treated as a convenience security layer, not as a replacement for strong passwords, full-disk encryption, or standard workstation lock policies.
 
-## First-Run Setup
-
-1. Open BlueLatch.
-2. Go to `Trusted Device`.
-3. Start a scan and select your phone.
-4. Pair and trust the device if required by BlueZ.
-5. Choose `Use Selected`.
-6. Open `Settings`.
-7. Confirm the away grace period, lock method, reconnect behavior, and startup behavior.
-8. Enable start-on-login if desired.
-
-BlueLatch stores the trusted device:
-
-- MAC address
-- BlueZ object path
-- alias/friendly name
-- pair/trust flags
-
-## Startup Behavior
-
-BlueLatch supports per-user startup management.
-
-- Preferred path: user-level systemd service
-- Fallback path: XDG autostart desktop entry
-
-The settings UI exposes `Start on login`. When enabled, BlueLatch installs or updates the per-user startup mechanism cleanly and reversibly.
-
-The background agent is intended to run even when the main UI is not open.
-
-## Update Behavior
-
-BlueLatch checks GitHub Releases for updates.
-
-- `Check for updates on startup` can be disabled in settings.
-- The UI provides a manual `Updates` action.
-- The result includes current version, latest version, release notes snippet, and package-aware guidance.
-
-Package-specific behavior:
-
-- AppImage:
-  - preferred flow is download-and-replace
-  - AppImage delta update support can be added later when release metadata is wired for it
-- Debian / apt installs:
-  - BlueLatch does not self-overwrite apt-managed installs
-  - the app shows update guidance instead
-
-## Screenshots
-
-Placeholders live in `assets/screenshots/`.
-
-Recommended captures for the first release:
-
-- onboarding page
-- trusted device selection page
-- protection settings page
-- live status page
-- update dialog
-
-## Repository Layout
-
-```text
-.
-├── assets/
-├── packaging/
-│   ├── appimage/
-│   ├── debian/
-│   ├── desktop/
-│   └── systemd/
-├── scripts/
-├── src/bluelatch/
-│   ├── bluetooth/
-│   ├── config/
-│   ├── presence/
-│   ├── session/
-│   ├── startup/
-│   ├── ui/
-│   ├── updates/
-│   └── util/
-└── tests/
-```
-
 ## Development Setup
 
-Ubuntu 24.04 development dependencies:
+Install system dependencies on Ubuntu 24.04 or a close Debian-family derivative:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y \
+  appstream \
   bluez \
+  curl \
+  debhelper \
+  desktop-file-utils \
+  dh-python \
+  fakeroot \
   gir1.2-adw-1 \
   gir1.2-gtk-4.0 \
-  libnotify-bin \
+  gpg \
+  pybuild-plugin-pyproject \
+  python3-all \
+  python3-build \
   python3-gi \
-  python3-gi-cairo \
   python3-packaging \
   python3-pip \
-  python3-pytest
+  python3-pytest \
+  python3-setuptools \
+  python3-wheel \
+  reprepro \
+  rsync
 ```
 
-Optional Python build tooling:
+Install the Python package in editable mode for development:
 
 ```bash
-python3 -m pip install --user build
+python3 -m pip install --user -e ".[dev]"
 ```
 
 Run the UI:
@@ -282,101 +172,272 @@ Run the background agent only:
 python3 -m bluelatch.main --agent
 ```
 
-Run checks:
+Run the local verification suite:
 
 ```bash
 ./scripts/check.sh
 ```
 
-## Testing
+## Local Build Commands
 
-The test suite covers:
+Build wheel and sdist:
 
-- presence estimator behavior
-- manual override state machine behavior
-- reconnect backoff
-- config persistence
-- lock-method model stability
-- integration-style manual override flow simulation
+```bash
+python3 -m build
+```
 
-## Packaging
-
-Build Debian package:
+Build the Debian package:
 
 ```bash
 ./scripts/build_deb.sh
 ```
 
-Build AppImage:
+The Debian package build:
+
+- stages a clean source tree in `build/debian/source/`
+- copies `packaging/debian/` into that staging tree
+- runs `dpkg-checkbuilddeps`
+- runs `dpkg-buildpackage`
+- writes artifacts to `dist/debian/`
+
+Expected Debian artifact:
+
+```text
+dist/debian/bluelatch_0.1.1_amd64.deb
+```
+
+Build the AppImage:
 
 ```bash
 ./scripts/build_appimage.sh
 ```
 
-Packaging assets live under:
+The AppImage build:
 
-- `packaging/debian/`
-- `packaging/appimage/`
-- `packaging/desktop/`
-- `packaging/systemd/`
+- builds a wheel into `build/appimage/wheels/`
+- installs the package into `build/appimage/AppDir/`
+- installs the desktop file, icon, metainfo, and portable launcher wrappers
+- downloads `linuxdeploy` and the GTK plugin on first use
+- writes the final AppImage to `dist/`
 
-## CI and Releases
+Expected AppImage artifact:
 
-GitHub Actions workflow:
+```text
+dist/BlueLatch-0.1.1-x86_64.AppImage
+```
 
-- installs system dependencies
-- runs compile and pytest checks
-- builds wheel and sdist
-- builds `.deb`
-- builds AppImage
-- uploads artifacts
-- publishes release assets on version tags
+Collect release-ready assets and checksums after building:
 
-Release notes template:
+```bash
+./scripts/collect_release_assets.sh
+```
 
-- `.github/RELEASE_TEMPLATE.md`
+Expected release asset directory:
 
-Version source of truth:
+```text
+dist/release/
+```
 
-- `src/bluelatch/version.py`
+## Debian Packaging Notes
+
+The Debian package is built from `packaging/debian/` and targets `amd64` first.
+
+What the package installs:
+
+- Python application entry points through the normal Debian Python packaging path
+- Desktop launcher in `/usr/share/applications/`
+- SVG icon in `/usr/share/icons/hicolor/scalable/apps/`
+- AppStream metadata in `/usr/share/metainfo/`
+- User service unit in `/usr/lib/systemd/user/bluelatch-agent.service`
+
+What the package does not do:
+
+- It does not enable the background agent for every user automatically.
+- It does not run the app as root.
+- It does not change BlueLatch locking logic or Bluetooth presence behavior.
+
+BlueLatch still manages startup per user from the settings UI. The installed user unit is there so packaged deployments have a standard systemd user service available.
+
+## AppImage Notes
+
+The AppImage launcher keeps the app entry point portable by replacing build-host-specific console scripts with small shell wrappers that execute `python3 -m bluelatch.main`.
+
+This build currently targets Debian-family systems where Python 3, BlueZ, and the desktop Bluetooth stack are already present. The GTK plugin remains enabled so the AppImage bundles the GTK side of the runtime as far as practical in CI.
+
+## APT Repository
+
+Tagged releases publish a signed APT repository to GitHub Pages under:
+
+```text
+https://udayasri0.github.io/BlueLatch/apt
+```
+
+BlueLatch uses a modern `signed-by` setup and does not rely on deprecated `apt-key`.
+
+End-user installation commands:
+
+```bash
+curl -fsSL https://udayasri0.github.io/BlueLatch/apt/bluelatch-archive-keyring.asc \
+  | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/bluelatch-archive-keyring.gpg > /dev/null
+```
+
+```bash
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bluelatch-archive-keyring.gpg] https://udayasri0.github.io/BlueLatch/apt stable main" \
+  | sudo tee /etc/apt/sources.list.d/bluelatch.list > /dev/null
+```
+
+```bash
+sudo apt update
+sudo apt install bluelatch
+```
+
+## GitHub Release Usage
+
+Each tagged release publishes:
+
+- wheel
+- sdist
+- Debian package
+- AppImage
+- `SHA256SUMS.txt`
+
+Download files from the GitHub Releases page:
+
+```text
+https://github.com/UdayaSri0/BlueLatch/releases
+```
+
+Verify downloaded release assets:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+
+Install the standalone Debian package directly from a release download:
+
+```bash
+sudo apt install ./bluelatch_0.1.1_amd64.deb
+```
+
+## Upgrade Guidance
+
+AppImage users:
+
+- Download the new `BlueLatch-0.1.1-x86_64.AppImage` file.
+- Replace the old AppImage file.
+- Make sure it stays executable with `chmod +x BlueLatch-0.1.1-x86_64.AppImage`.
+
+Debian and APT users:
+
+- If you installed from the GitHub Pages APT repo, run `sudo apt update && sudo apt install --only-upgrade bluelatch`.
+- If you installed from a standalone `.deb`, install the newer `.deb` package with `sudo apt install ./bluelatch_0.1.1_amd64.deb`.
+- BlueLatch does not self-overwrite APT-managed installs.
+
+## CI and Release Automation
+
+Normal CI lives in `.github/workflows/ci.yml`.
+
+It:
+
+- checks out the repository
+- installs packaging and GTK build dependencies
+- runs compile checks
+- runs the test suite
+- verifies release metadata consistency
+- builds the wheel and sdist
+- builds the Debian package
+- builds the AppImage
+- uploads release-style artifacts
+
+Tagged releases live in `.github/workflows/release.yml`.
+
+It:
+
+- verifies the tag matches `src/bluelatch/version.py`
+- rebuilds and tests the release on Ubuntu 24.04
+- renders release notes from `CHANGELOG.md`
+- signs and publishes the GitHub Pages APT repository
+- uploads GitHub release assets
+- deploys the Pages site
+
+Required GitHub repository settings and secrets:
+
+- Enable GitHub Pages and set the source to GitHub Actions.
+- Add `BLUELATCH_APT_GPG_PRIVATE_KEY` with the ASCII-armored private signing key.
+- Add `BLUELATCH_APT_GPG_PASSPHRASE` with the passphrase for that key.
+
+## Local Release Notes and APT Publishing
+
+Render the release notes for the current version from `CHANGELOG.md`:
+
+```bash
+./scripts/render_release_notes.sh
+```
+
+Publish a local Pages-style APT repository after importing the signing key into your GPG keyring:
+
+```bash
+export BLUELATCH_APT_GPG_FINGERPRINT=YOUR_KEY_FINGERPRINT
+export BLUELATCH_APT_BASE_URL=https://udayasri0.github.io/BlueLatch/apt
+./scripts/publish_apt_repo.sh
+```
+
+That writes the publishable site content to:
+
+```text
+dist/pages/
+```
 
 ## Troubleshooting
 
-### Bluetooth is off or no adapter is found
+### `python3 -m bluelatch.main` fails from a fresh clone
 
-- Turn Bluetooth on in GNOME Settings.
-- Confirm `bluetoothd` is running.
-- Verify the current user can access BlueZ D-Bus.
+Install the project in editable mode first:
 
-### The trusted phone never reconnects
+```bash
+python3 -m pip install --user -e ".[dev]"
+```
 
-- Re-pair the phone if BlueZ lost trust/pairing metadata.
-- Check whether the phone allows reconnect from the laptop side.
-- Review `Logs` for reconnect backoff and BlueZ errors.
+### `./scripts/build_deb.sh` reports missing packaging files
 
-### The desktop does not lock
+The Debian build requires the committed `packaging/debian/` tree. Restore the missing files or start from a clean checkout.
 
-- Verify GNOME screen lock works manually.
-- Confirm `loginctl lock-session` works for the current session.
-- Try forcing the lock method to `GNOME` or `loginctl` in settings.
+### `./scripts/build_deb.sh` reports unmet build dependencies
 
-### The app keeps saying the phone is away
+Install the Debian build requirements shown in the Development Setup section, then re-run the script. The script calls `dpkg-checkbuilddeps` before building.
 
-- Increase `Away grace`.
-- Switch to `disconnect_only` mode.
-- Lower sensitivity by adjusting RSSI thresholds and smoothing window.
+### `./scripts/build_appimage.sh` fails while downloading tools
 
-### Startup does not stick
+The first AppImage build downloads `linuxdeploy` and the GTK plugin. Confirm outbound network access and re-run the build.
 
-- Check whether `systemctl --user` is available and working.
-- If a user service cannot be enabled, BlueLatch falls back to XDG autostart.
+### `./scripts/build_appimage.sh` fails validation
 
-## Known Limitations
+Install `desktop-file-utils` and `appstream` so the desktop file and AppStream metadata can be validated locally.
 
-- The first release is GNOME-first and not yet tuned for KDE/XFCE session APIs.
-- The UI currently reads runtime status/history from state files rather than a dedicated IPC bus.
-- AppImage updating is guidance-first until release metadata is finalized for delta updates.
-- Bluetooth behavior depends on the adapter, phone stack, and BlueZ behavior on the host.
+### Release workflow fails while publishing the APT repository
+
+Check all of the following:
+
+- GitHub Pages is enabled for GitHub Actions.
+- `BLUELATCH_APT_GPG_PRIVATE_KEY` is a valid ASCII-armored private key.
+- `BLUELATCH_APT_GPG_PASSPHRASE` matches the imported key.
+- the tag version matches `src/bluelatch/version.py`
+
+## Repository Layout
+
+```text
+.
+├── assets/
+├── packaging/
+│   ├── appimage/
+│   ├── debian/
+│   ├── desktop/
+│   └── systemd/
+├── scripts/
+├── src/bluelatch/
+└── tests/
+```
 
 ## License
 

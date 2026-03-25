@@ -1,5 +1,44 @@
 #!/bin/sh
+set -eu
+
 HERE="$(dirname "$(readlink -f "$0")")"
-export PATH="$HERE/usr/bin:$PATH"
-export PYTHONPATH="$HERE/usr/lib/python3.12/site-packages:$HERE/usr/lib/python3/dist-packages:$PYTHONPATH"
+export APPDIR="$HERE"
+
+prepend_path() {
+  target_var="$1"
+  target_path="$2"
+  [ -d "$target_path" ] || return 0
+
+  eval "current_value=\${$target_var:-}"
+  if [ -n "$current_value" ]; then
+    eval "export $target_var=\"\$target_path:\$current_value\""
+  else
+    eval "export $target_var=\"\$target_path\""
+  fi
+}
+
+if [ -d "$HERE/apprun-hooks" ]; then
+  for hook in "$HERE"/apprun-hooks/*; do
+    [ -f "$hook" ] || continue
+    # shellcheck disable=SC1090
+    . "$hook"
+  done
+fi
+
+prepend_path PATH "$HERE/usr/bin"
+prepend_path XDG_DATA_DIRS "$HERE/usr/share"
+prepend_path GI_TYPELIB_PATH "$HERE/usr/lib/girepository-1.0"
+prepend_path GI_TYPELIB_PATH "$HERE/usr/lib/x86_64-linux-gnu/girepository-1.0"
+
+for python_dir in \
+  "$HERE"/usr/lib/python3*/site-packages \
+  "$HERE"/usr/lib/python3*/dist-packages \
+  "$HERE"/usr/lib64/python3*/site-packages \
+  "$HERE"/usr/lib64/python3*/dist-packages
+do
+  prepend_path PYTHONPATH "$python_dir"
+done
+
+export PYTHONNOUSERSITE=1
+
 exec "$HERE/usr/bin/bluelatch" "$@"

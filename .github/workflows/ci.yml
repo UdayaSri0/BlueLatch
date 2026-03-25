@@ -2,18 +2,23 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
-    tags: ["v*"]
+    branches:
+      - main
   pull_request:
 
 jobs:
-  test-and-package:
+  build:
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Install system dependencies
         run: |
@@ -22,27 +27,30 @@ jobs:
             appstream \
             curl \
             debhelper \
+            desktop-file-utils \
             dh-python \
-            lintian \
+            fakeroot \
+            gir1.2-adw-1 \
+            gir1.2-gtk-4.0 \
             pybuild-plugin-pyproject \
             python3-all \
             python3-build \
             python3-gi \
-            python3-gi-cairo \
             python3-packaging \
             python3-pip \
             python3-pytest \
             python3-setuptools \
-            gir1.2-adw-1 \
-            gir1.2-gtk-4.0
+            python3-wheel \
+            rsync
 
-      - name: Verify Python
-        run: python3 --version
+      - name: Compile Python sources
+        run: python3 -m compileall src tests
 
-      - name: Run tests
-        run: |
-          python3 -m compileall src tests
-          python3 -m pytest
+      - name: Run test suite
+        run: python3 -m pytest
+
+      - name: Check release metadata
+        run: ./scripts/check_release_metadata.sh
 
       - name: Build wheel and sdist
         run: python3 -m build
@@ -53,21 +61,15 @@ jobs:
       - name: Build AppImage
         run: ./scripts/build_appimage.sh
 
-      - name: Upload artifacts
+      - name: Collect release assets
+        run: ./scripts/collect_release_assets.sh
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: bluelatch-artifacts
+          name: bluelatch-build-artifacts
+          if-no-files-found: error
           path: |
-            dist/*
-            ../*.deb
-            *.AppImage
-
-      - name: Publish GitHub release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: .github/RELEASE_TEMPLATE.md
-          files: |
-            dist/*
-            ../*.deb
-            *.AppImage
+            dist/release/*
+            dist/debian/*.buildinfo
+            dist/debian/*.changes

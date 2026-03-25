@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bluelatch.version import BUILD_CHANNEL, __version__
+from bluelatch.version import __version__
 
 try:
     import gi
@@ -30,5 +30,5 @@ def show_about_dialog(parent: Gtk.Window) -> None:
     about.add_link("GitHub", "https://github.com/UdayaSri0")
     about.add_link("Project Repository", "https://github.com/UdayaSri0/BlueLatch")
     about.add_link("Issue Tracker", "https://github.com/UdayaSri0/BlueLatch/issues")
-    about.set_release_notes_version(BUILD_CHANNEL)
+    about.set_release_notes_version(__version__)
     about.present()

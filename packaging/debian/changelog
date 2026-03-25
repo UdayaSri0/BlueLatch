@@ -1,0 +1,7 @@
+bluelatch (0.1.1) unstable; urgency=medium
+
+  * Add complete Debian packaging for amd64 builds.
+  * Install the desktop launcher, icon, metainfo, and user service unit.
+  * Harden Debian release automation for CI and local builds.
+
+ -- Udaya Sri <105188685+UdayaSri0@users.noreply.github.com>  Wed, 25 Mar 2026 18:00:00 +0530

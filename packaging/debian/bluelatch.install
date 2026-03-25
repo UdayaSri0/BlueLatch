@@ -1,0 +1,4 @@
+assets/icons/scalable/apps/io.github.UdayaSri.BlueLatch.svg usr/share/icons/hicolor/scalable/apps/
+packaging/appimage/io.github.UdayaSri.BlueLatch.appdata.xml usr/share/metainfo/
+packaging/desktop/io.github.UdayaSri.BlueLatch.desktop usr/share/applications/
+packaging/systemd/bluelatch-agent.service usr/lib/systemd/user/
