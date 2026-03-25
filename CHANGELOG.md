@@ -8,7 +8,7 @@ The project follows Semantic Versioning.
 
 ### Summary
 
-- This release prepares BlueLatch for real-world distribution on Debian-based Linux systems.
+- This release prepares BlueLatch for real-world distribution on Debian-based Linux systems and adds clearer install, run, and first-use guidance.
 
 ### Highlights
 
@@ -16,7 +16,8 @@ The project follows Semantic Versioning.
 - Improved AppImage build and release artifact naming.
 - Added release automation for `.deb`, AppImage, wheel, and source tarball.
 - Added APT repository publishing support for Ubuntu, Linux Mint, and Debian-based systems.
-- Improved packaging and installation documentation.
+- Hardened Debian and AppImage GitHub Actions packaging on Ubuntu 24.04.
+- Improved packaging, installation, run, and usage documentation.
 
 ### Packaging and Distribution
 
@@ -24,11 +25,15 @@ The project follows Semantic Versioning.
 - AppImage releases are easier to download and run.
 - APT repository support has been prepared for simpler future upgrades.
 - Release artifacts now use cleaner naming and checksum support.
+- AppImage builds now use a consistent `setup-python` packaging toolchain in CI.
 
 ### Fixes
 
 - Fixed the Debian build failure caused by the missing `packaging/debian` structure.
-- Improved build script reliability and artifact collection.
+- Fixed Debian CI build failures caused by missing `dpkg-checkbuilddeps` prerequisites on the GitHub Actions runner.
+- Fixed AppImage CI wheel builds by using the `setup-python` environment consistently instead of falling back to Ubuntu dist-packages.
+- Fixed the AppImage GTK plugin failure on Ubuntu 24.04 runners by installing `libgtk-4-dev` so `gtk4.pc` is available.
+- Improved build script reliability, artifact collection, and troubleshooting guidance.
 - Cleaned up release workflow expectations.
 
 ### Upgrade Notes

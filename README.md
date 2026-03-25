@@ -40,6 +40,68 @@ Assumptions for the packaged builds:
 - Python 3.12 is available on the target system.
 - GTK4 and libadwaita are available through PyGObject.
 
+## Quick Start
+
+Choose the install path that matches how you want to run BlueLatch.
+
+### Install from the APT repository
+
+```bash
+curl -fsSL https://udayasri0.github.io/BlueLatch/apt/bluelatch-archive-keyring.asc \
+  | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/bluelatch-archive-keyring.gpg > /dev/null
+```
+
+```bash
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bluelatch-archive-keyring.gpg] https://udayasri0.github.io/BlueLatch/apt stable main" \
+  | sudo tee /etc/apt/sources.list.d/bluelatch.list > /dev/null
+```
+
+```bash
+sudo apt update
+sudo apt install bluelatch
+bluelatch
+```
+
+### Install from a standalone Debian package
+
+```bash
+sudo apt install ./bluelatch_0.1.1_amd64.deb
+bluelatch
+```
+
+### Run the AppImage
+
+```bash
+chmod +x BlueLatch-0.1.1-x86_64.AppImage
+./BlueLatch-0.1.1-x86_64.AppImage
+```
+
+### Run from a development checkout
+
+```bash
+python3 -m venv --system-site-packages .venv
+. .venv/bin/activate
+python3 -m pip install --no-build-isolation -e ".[dev]"
+python3 -m bluelatch.main
+```
+
+## How to Use BlueLatch
+
+1. Launch BlueLatch. Opening the desktop UI also starts the background agent if it is not already running.
+2. Open `Trusted Device`, click `Scan`, and select your phone from the list.
+3. Click `Pair` and `Trust` if needed, then click `Use Selected` to save that phone as the one trusted device.
+4. Open `Settings`, review `Enable protection`, `Start on login`, `Presence mode`, and the grace-period values, then click `Save Settings`.
+5. Open `Status` to confirm the trusted device, Bluetooth availability, connection state, and current protection state.
+6. Leave with your phone to test the lock behaviour. If you manually unlock while the phone is still away, BlueLatch enters manual override and waits for the phone to return before normal auto-locking resumes.
+
+## Run Modes
+
+- `bluelatch` launches the GTK desktop UI.
+- `bluelatch-agent` runs only the background protection agent.
+- `python3 -m bluelatch.main` is the development equivalent of `bluelatch`.
+- `python3 -m bluelatch.main --agent` is the development equivalent of `bluelatch-agent`.
+
 ## Architecture
 
 BlueLatch is split into two runtime parts.
@@ -141,6 +203,7 @@ sudo apt-get install -y \
   gir1.2-adw-1 \
   gir1.2-gtk-4.0 \
   gpg \
+  libgtk-4-dev \
   pybuild-plugin-pyproject \
   python3-all \
   python3-build \
@@ -265,6 +328,8 @@ BlueLatch still manages startup per user from the settings UI. The installed use
 The AppImage launcher keeps the app entry point portable by replacing build-host-specific console scripts with small shell wrappers that execute `python3 -m bluelatch.main`.
 
 This build currently targets Debian-family systems where Python 3, BlueZ, and the desktop Bluetooth stack are already present. The GTK plugin remains enabled so the AppImage bundles the GTK side of the runtime as far as practical in CI.
+
+Local AppImage builds also require `libgtk-4-dev` so `linuxdeploy-plugin-gtk` can resolve `gtk4.pc` and find the GTK 4 module path through `pkg-config`.
 
 ## APT Repository
 
@@ -422,6 +487,10 @@ Install the Debian build requirements shown in the Development Setup section, th
 ### `./scripts/build_appimage.sh` fails while downloading tools
 
 The first AppImage build downloads `linuxdeploy` and the GTK plugin. Confirm outbound network access and re-run the build.
+
+### `./scripts/build_appimage.sh` fails with `gtk4.pc` or `linuxdeploy-plugin-gtk`
+
+Install `libgtk-4-dev` locally and then retry the build. The GTK AppImage plugin reads `gtk4.pc` through `pkg-config` to discover the GTK 4 library and module directories.
 
 ### `./scripts/build_appimage.sh` fails validation
 
