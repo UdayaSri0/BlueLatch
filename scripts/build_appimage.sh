@@ -28,6 +28,20 @@ require_file() {
   [[ -f "$file_path" ]] || fail "required file is missing: $file_path"
 }
 
+resolve_pkg_config_command() {
+  if command -v pkgconf >/dev/null 2>&1; then
+    printf '%s\n' pkgconf
+    return 0
+  fi
+
+  if command -v pkg-config >/dev/null 2>&1; then
+    printf '%s\n' pkg-config
+    return 0
+  fi
+
+  fail "pkg-config/pkgconf is required for linuxdeploy-plugin-gtk; install libgtk-4-dev or pkg-config before building the AppImage"
+}
+
 ensure_build_backend_available() {
   "$PYTHON_BIN" -c 'import setuptools, wheel' >/dev/null 2>&1 || fail \
     "$PYTHON_BIN needs setuptools and wheel in the active environment; run '$PYTHON_BIN -m pip install --upgrade pip setuptools wheel build' before building the AppImage"
@@ -55,6 +69,7 @@ resolve_python_command() {
 require_command bash
 require_command curl
 PYTHON_BIN="$(resolve_python_command)"
+PKG_CONFIG_BIN="$(resolve_pkg_config_command)"
 require_command "$PYTHON_BIN"
 
 "$PYTHON_BIN" -m pip --version >/dev/null 2>&1 || fail "$PYTHON_BIN pip support is required"
@@ -62,8 +77,16 @@ require_command "$PYTHON_BIN"
   "$PYTHON_BIN -m build is required; run '$PYTHON_BIN -m pip install --upgrade pip setuptools wheel build' before building the AppImage"
 ensure_build_backend_available
 
+"$PKG_CONFIG_BIN" --exists gtk4 || fail \
+  "$PKG_CONFIG_BIN could not find gtk4.pc; install libgtk-4-dev so linuxdeploy-plugin-gtk can discover GTK 4 paths"
+GTK4_LIBDIR="$("$PKG_CONFIG_BIN" --variable=libdir gtk4 2>/dev/null)"
+[[ -n "$GTK4_LIBDIR" ]] || fail \
+  "$PKG_CONFIG_BIN found gtk4 but did not report a libdir; check the libgtk-4-dev installation on this runner"
+
 echo "build_appimage.sh: using Python interpreter $("$PYTHON_BIN" -c 'import sys; print(sys.executable)')"
 echo "build_appimage.sh: $("$PYTHON_BIN" --version 2>&1)"
+echo "build_appimage.sh: using pkg-config tool $(command -v "$PKG_CONFIG_BIN")"
+echo "build_appimage.sh: gtk4 libdir $GTK4_LIBDIR"
 
 require_file "$DESKTOP_FILE"
 require_file "$ICON_FILE"

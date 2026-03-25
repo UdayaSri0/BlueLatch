@@ -47,6 +47,7 @@ jobs:
             gir1.2-adw-1 \
             gir1.2-gtk-4.0 \
             gpg \
+            libgtk-4-dev \
             pybuild-plugin-pyproject \
             python3-all \
             python3-build \
