@@ -66,15 +66,15 @@ bluelatch
 ### Install from a standalone Debian package
 
 ```bash
-sudo apt install ./bluelatch_0.1.1.7_amd64.deb
+sudo apt install ./bluelatch_0.1.1.8_amd64.deb
 bluelatch
 ```
 
 ### Run the AppImage
 
 ```bash
-chmod +x BlueLatch-0.1.1.7-x86_64.AppImage
-./BlueLatch-0.1.1.7-x86_64.AppImage
+chmod +x BlueLatch-0.1.1.8-x86_64.AppImage
+./BlueLatch-0.1.1.8-x86_64.AppImage
 ```
 
 ### Run from a development checkout
@@ -268,7 +268,7 @@ The Debian package build:
 Expected Debian artifact:
 
 ```text
-dist/debian/bluelatch_0.1.1.7_amd64.deb
+dist/debian/bluelatch_0.1.1.8_amd64.deb
 ```
 
 Build the AppImage:
@@ -288,7 +288,7 @@ The AppImage build:
 Expected AppImage artifact:
 
 ```text
-dist/BlueLatch-0.1.1.7-x86_64.AppImage
+dist/BlueLatch-0.1.1.8-x86_64.AppImage
 ```
 
 Collect release-ready assets and checksums after building:
@@ -384,21 +384,21 @@ sha256sum -c SHA256SUMS.txt
 Install the standalone Debian package directly from a release download:
 
 ```bash
-sudo apt install ./bluelatch_0.1.1.7_amd64.deb
+sudo apt install ./bluelatch_0.1.1.8_amd64.deb
 ```
 
 ## Upgrade Guidance
 
 AppImage users:
 
-- Download the new `BlueLatch-0.1.1.7-x86_64.AppImage` file.
+- Download the new `BlueLatch-0.1.1.8-x86_64.AppImage` file.
 - Replace the old AppImage file.
-- Make sure it stays executable with `chmod +x BlueLatch-0.1.1.7-x86_64.AppImage`.
+- Make sure it stays executable with `chmod +x BlueLatch-0.1.1.8-x86_64.AppImage`.
 
 Debian and APT users:
 
 - If you installed from the GitHub Pages APT repo, run `sudo apt update && sudo apt install --only-upgrade bluelatch`.
-- If you installed from a standalone `.deb`, install the newer `.deb` package with `sudo apt install ./bluelatch_0.1.1.7_amd64.deb`.
+- If you installed from a standalone `.deb`, install the newer `.deb` package with `sudo apt install ./bluelatch_0.1.1.8_amd64.deb`.
 - BlueLatch does not self-overwrite APT-managed installs.
 
 ## CI and Release Automation
@@ -424,13 +424,15 @@ It:
 - verifies the tag matches `src/bluelatch/version.py`
 - rebuilds and tests the release on Ubuntu 24.04
 - renders release notes from `CHANGELOG.md`
-- signs and publishes the GitHub Pages APT repository
+- signs and publishes the GitHub Pages APT repository when signing secrets are configured
 - uploads GitHub release assets
 - deploys the Pages site
 
-Required GitHub repository settings and secrets:
+Required GitHub repository settings:
 
 - Enable GitHub Pages and set the source to GitHub Actions.
+
+Optional secrets for APT repository publishing:
 - Add `BLUELATCH_APT_GPG_PRIVATE_KEY` with the ASCII-armored private signing key.
 - Add `BLUELATCH_APT_GPG_PASSPHRASE` with the passphrase for that key.
 
@@ -504,6 +506,8 @@ Check all of the following:
 - `BLUELATCH_APT_GPG_PRIVATE_KEY` is a valid ASCII-armored private key.
 - `BLUELATCH_APT_GPG_PASSPHRASE` matches the imported key.
 - the tag version matches `src/bluelatch/version.py`
+
+If the signing secrets are intentionally not configured, the release workflow now skips APT publish steps instead of failing the whole release job.
 
 ## Repository Layout
 

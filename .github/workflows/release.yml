@@ -107,17 +107,26 @@ jobs:
       - name: Render release notes
         run: ./scripts/render_release_notes.sh
 
-      - name: Import APT signing key
-        id: gpg
+      - name: Check APT signing configuration
+        id: apt_signing
         env:
           BLUELATCH_APT_GPG_PRIVATE_KEY: ${{ secrets.BLUELATCH_APT_GPG_PRIVATE_KEY }}
           BLUELATCH_APT_GPG_PASSPHRASE: ${{ secrets.BLUELATCH_APT_GPG_PASSPHRASE }}
         run: |
           if [[ -z "$BLUELATCH_APT_GPG_PRIVATE_KEY" || -z "$BLUELATCH_APT_GPG_PASSPHRASE" ]]; then
-            echo "APT signing secrets are required for release publishing" >&2
-            exit 1
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "APT signing secrets are missing. Skipping APT repository publication for this release."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Import APT signing key
+        if: steps.apt_signing.outputs.enabled == 'true'
+        id: gpg
+        env:
+          BLUELATCH_APT_GPG_PRIVATE_KEY: ${{ secrets.BLUELATCH_APT_GPG_PRIVATE_KEY }}
+          BLUELATCH_APT_GPG_PASSPHRASE: ${{ secrets.BLUELATCH_APT_GPG_PASSPHRASE }}
+        run: |
           export GNUPGHOME="$RUNNER_TEMP/gnupg"
           mkdir -p "$GNUPGHOME"
           chmod 700 "$GNUPGHOME"
@@ -142,6 +151,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
 
       - name: Publish APT repository content
+        if: steps.apt_signing.outputs.enabled == 'true'
         env:
           BLUELATCH_APT_GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
           BLUELATCH_APT_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/apt

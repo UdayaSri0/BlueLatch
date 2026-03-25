@@ -1,4 +1,4 @@
-bluelatch (0.1.1.7) unstable; urgency=medium
+bluelatch (0.1.1.8) unstable; urgency=medium
 
   * Add complete Debian packaging for amd64 builds.
   * Install the desktop launcher, icon, metainfo, and user service unit.
