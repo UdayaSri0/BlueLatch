@@ -4,7 +4,7 @@ All notable changes to BlueLatch are tracked here.
 
 The project follows Semantic Versioning.
 
-## [0.1.1.6] - 2026-03-25
+## [0.1.1.7] - 2026-03-25
 
 ### Summary
 

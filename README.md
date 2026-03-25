@@ -66,15 +66,15 @@ bluelatch
 ### Install from a standalone Debian package
 
 ```bash
-sudo apt install ./bluelatch_0.1.1.6_amd64.deb
+sudo apt install ./bluelatch_0.1.1.7_amd64.deb
 bluelatch
 ```
 
 ### Run the AppImage
 
 ```bash
-chmod +x BlueLatch-0.1.1.6-x86_64.AppImage
-./BlueLatch-0.1.1.6-x86_64.AppImage
+chmod +x BlueLatch-0.1.1.7-x86_64.AppImage
+./BlueLatch-0.1.1.7-x86_64.AppImage
 ```
 
 ### Run from a development checkout
@@ -268,7 +268,7 @@ The Debian package build:
 Expected Debian artifact:
 
 ```text
-dist/debian/bluelatch_0.1.1.6_amd64.deb
+dist/debian/bluelatch_0.1.1.7_amd64.deb
 ```
 
 Build the AppImage:
@@ -288,7 +288,7 @@ The AppImage build:
 Expected AppImage artifact:
 
 ```text
-dist/BlueLatch-0.1.1.6-x86_64.AppImage
+dist/BlueLatch-0.1.1.7-x86_64.AppImage
 ```
 
 Collect release-ready assets and checksums after building:
@@ -384,21 +384,21 @@ sha256sum -c SHA256SUMS.txt
 Install the standalone Debian package directly from a release download:
 
 ```bash
-sudo apt install ./bluelatch_0.1.1.6_amd64.deb
+sudo apt install ./bluelatch_0.1.1.7_amd64.deb
 ```
 
 ## Upgrade Guidance
 
 AppImage users:
 
-- Download the new `BlueLatch-0.1.1.6-x86_64.AppImage` file.
+- Download the new `BlueLatch-0.1.1.7-x86_64.AppImage` file.
 - Replace the old AppImage file.
-- Make sure it stays executable with `chmod +x BlueLatch-0.1.1.6-x86_64.AppImage`.
+- Make sure it stays executable with `chmod +x BlueLatch-0.1.1.7-x86_64.AppImage`.
 
 Debian and APT users:
 
 - If you installed from the GitHub Pages APT repo, run `sudo apt update && sudo apt install --only-upgrade bluelatch`.
-- If you installed from a standalone `.deb`, install the newer `.deb` package with `sudo apt install ./bluelatch_0.1.1.6_amd64.deb`.
+- If you installed from a standalone `.deb`, install the newer `.deb` package with `sudo apt install ./bluelatch_0.1.1.7_amd64.deb`.
 - BlueLatch does not self-overwrite APT-managed installs.
 
 ## CI and Release Automation
