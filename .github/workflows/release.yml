@@ -19,10 +19,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install Python dependencies
+        run: |
+          # AppImage wheel builds need the setup-python toolchain, not Ubuntu dist-packages.
+          python -m pip install --upgrade pip setuptools wheel build pytest
+
       - name: Verify tag matches application version
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          APP_VERSION="$(PYTHONPATH=src python3 -c 'from bluelatch.version import __version__; print(__version__)')"
+          APP_VERSION="$(PYTHONPATH=src python -c 'from bluelatch.version import __version__; print(__version__)')"
           if [[ "$TAG_VERSION" != "$APP_VERSION" ]]; then
             echo "Tag version $TAG_VERSION does not match application version $APP_VERSION" >&2
             exit 1
@@ -55,16 +60,16 @@ jobs:
             rsync
 
       - name: Compile Python sources
-        run: python3 -m compileall src tests
+        run: python -m compileall src tests
 
       - name: Run test suite
-        run: python3 -m pytest
+        run: python -m pytest
 
       - name: Check release metadata
         run: ./scripts/check_release_metadata.sh
 
       - name: Build wheel and sdist
-        run: python3 -m build
+        run: python -m build
 
       - name: Verify Debian build dependencies
         run: |
@@ -94,6 +99,8 @@ jobs:
         run: ./scripts/build_deb.sh
 
       - name: Build AppImage
+        env:
+          PYTHON_BIN: python
         run: ./scripts/build_appimage.sh
 
       - name: Render release notes

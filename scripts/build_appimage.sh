@@ -12,7 +12,6 @@ DESKTOP_FILE="$ROOT_DIR/packaging/desktop/io.github.UdayaSri.BlueLatch.desktop"
 ICON_FILE="$ROOT_DIR/assets/icons/scalable/apps/io.github.UdayaSri.BlueLatch.svg"
 APPDATA_FILE="$ROOT_DIR/packaging/appimage/io.github.UdayaSri.BlueLatch.appdata.xml"
 APP_RUN_FILE="$ROOT_DIR/packaging/appimage/AppRun"
-HOST_DIST_PACKAGES="/usr/lib/python3/dist-packages"
 
 fail() {
   echo "build_appimage.sh: $*" >&2
@@ -30,26 +29,41 @@ require_file() {
 }
 
 ensure_build_backend_available() {
-  if python3 -c 'import setuptools, wheel' >/dev/null 2>&1; then
+  "$PYTHON_BIN" -c 'import setuptools, wheel' >/dev/null 2>&1 || fail \
+    "$PYTHON_BIN needs setuptools and wheel in the active environment; run '$PYTHON_BIN -m pip install --upgrade pip setuptools wheel build' before building the AppImage"
+}
+
+resolve_python_command() {
+  if [[ -n "${PYTHON_BIN:-}" ]]; then
+    printf '%s\n' "$PYTHON_BIN"
     return 0
   fi
 
-  if [[ -d "$HOST_DIST_PACKAGES" ]] && PYTHONPATH="$HOST_DIST_PACKAGES${PYTHONPATH:+:$PYTHONPATH}" \
-    python3 -c 'import setuptools, wheel' >/dev/null 2>&1; then
-    export PYTHONPATH="$HOST_DIST_PACKAGES${PYTHONPATH:+:$PYTHONPATH}"
+  if command -v python >/dev/null 2>&1; then
+    printf '%s\n' python
     return 0
   fi
 
-  fail "python3 needs setuptools and wheel available locally; install python3-setuptools and python3-wheel or recreate the virtualenv with --system-site-packages"
+  if command -v python3 >/dev/null 2>&1; then
+    printf '%s\n' python3
+    return 0
+  fi
+
+  fail "required command not found: python or python3"
 }
 
 require_command bash
 require_command curl
-require_command python3
+PYTHON_BIN="$(resolve_python_command)"
+require_command "$PYTHON_BIN"
 
-python3 -m pip --version >/dev/null 2>&1 || fail "python3 pip support is required"
-python3 -m build --version >/dev/null 2>&1 || fail "python3 -m build is required; install python3-build or pip install build"
+"$PYTHON_BIN" -m pip --version >/dev/null 2>&1 || fail "$PYTHON_BIN pip support is required"
+"$PYTHON_BIN" -m build --version >/dev/null 2>&1 || fail \
+  "$PYTHON_BIN -m build is required; run '$PYTHON_BIN -m pip install --upgrade pip setuptools wheel build' before building the AppImage"
 ensure_build_backend_available
+
+echo "build_appimage.sh: using Python interpreter $("$PYTHON_BIN" -c 'import sys; print(sys.executable)')"
+echo "build_appimage.sh: $("$PYTHON_BIN" --version 2>&1)"
 
 require_file "$DESKTOP_FILE"
 require_file "$ICON_FILE"
@@ -65,7 +79,7 @@ if command -v appstreamcli >/dev/null 2>&1; then
   appstreamcli validate --no-net "$APPDATA_FILE"
 fi
 
-VERSION="$(PYTHONPATH="$ROOT_DIR/src" python3 -c 'from bluelatch.version import __version__; print(__version__)')"
+VERSION="$(PYTHONPATH="$ROOT_DIR/src" "$PYTHON_BIN" -c 'from bluelatch.version import __version__; print(__version__)')"
 ARCH="$(uname -m)"
 ARTIFACT_NAME="BlueLatch-$VERSION-$ARCH.AppImage"
 FINAL_ARTIFACT="$DIST_DIR/$ARTIFACT_NAME"
@@ -81,9 +95,10 @@ if command -v git >/dev/null 2>&1 && git -C "$ROOT_DIR" rev-parse --is-inside-wo
   SOURCE_DATE_EPOCH="$(git -C "$ROOT_DIR" log -1 --pretty=%ct)"
 fi
 
-python3 -m build --wheel --no-isolation --outdir "$WHEEL_DIR" "$ROOT_DIR"
+"$PYTHON_BIN" -m build --wheel --no-isolation --outdir "$WHEEL_DIR" "$ROOT_DIR"
 WHEEL_PATH="$(find "$WHEEL_DIR" -maxdepth 1 -type f -name 'bluelatch-*.whl' | head -n 1)"
 [[ -n "$WHEEL_PATH" ]] || fail "wheel build did not produce a bluelatch wheel"
+echo "build_appimage.sh: built wheel $WHEEL_PATH"
 
 mkdir -p \
   "$APPDIR/usr/bin" \
@@ -91,7 +106,8 @@ mkdir -p \
   "$APPDIR/usr/share/icons/hicolor/scalable/apps" \
   "$APPDIR/usr/share/metainfo"
 
-python3 -m pip install --no-compile --no-deps --prefix "$APPDIR/usr" "$WHEEL_PATH"
+echo "build_appimage.sh: installing wheel into $APPDIR/usr"
+"$PYTHON_BIN" -m pip install --no-compile --no-deps --prefix "$APPDIR/usr" "$WHEEL_PATH"
 install -m 0755 "$ROOT_DIR/packaging/appimage/bluelatch" "$APPDIR/usr/bin/bluelatch"
 install -m 0755 "$ROOT_DIR/packaging/appimage/bluelatch-agent" "$APPDIR/usr/bin/bluelatch-agent"
 install -m 0644 "$DESKTOP_FILE" "$APPDIR/usr/share/applications/io.github.UdayaSri.BlueLatch.desktop"
