@@ -7,6 +7,7 @@ PACKAGING_DIR="$ROOT_DIR/packaging/debian"
 BUILD_ROOT="$ROOT_DIR/build/debian"
 STAGING_DIR="$BUILD_ROOT/source"
 OUTPUT_DIR="$ROOT_DIR/dist/debian"
+SYSTEM_BUILD_PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 
 fail() {
   echo "build_deb.sh: $*" >&2
@@ -23,8 +24,18 @@ require_file() {
   [[ -f "$file_path" ]] || fail "required packaging file is missing: $file_path"
 }
 
+run_with_system_python() {
+  env \
+    -u VIRTUAL_ENV \
+    -u PYTHONHOME \
+    -u PYTHONPATH \
+    PATH="$SYSTEM_BUILD_PATH" \
+    "$@"
+}
+
 require_command dpkg-buildpackage
 require_command dpkg-checkbuilddeps
+require_command fakeroot
 require_command rsync
 
 require_file "$PACKAGING_DIR/control"
@@ -59,8 +70,15 @@ cp -a "$PACKAGING_DIR" "$STAGING_DIR/debian"
 chmod 0755 "$STAGING_DIR/debian/rules"
 
 cd "$STAGING_DIR"
-dpkg-checkbuilddeps
-dpkg-buildpackage -rfakeroot -us -uc -b
+if ! run_with_system_python dpkg-checkbuilddeps; then
+  cat >&2 <<'EOF'
+build_deb.sh: install the Debian packaging prerequisites before retrying, for example:
+  sudo apt-get update
+  sudo apt-get install -y debhelper dh-python fakeroot pybuild-plugin-pyproject python3-all python3-build python3-packaging python3-pytest python3-setuptools python3-wheel rsync
+EOF
+  exit 1
+fi
+run_with_system_python dpkg-buildpackage -rfakeroot -us -uc -b
 
 find "$BUILD_ROOT" -maxdepth 1 -type f \
   \( -name 'bluelatch_*.deb' -o -name 'bluelatch_*.buildinfo' -o -name 'bluelatch_*.changes' \) \

@@ -157,7 +157,9 @@ sudo apt-get install -y \
 Install the Python package in editable mode for development:
 
 ```bash
-python3 -m pip install --user -e ".[dev]"
+python3 -m venv --system-site-packages .venv
+. .venv/bin/activate
+python3 -m pip install --no-build-isolation -e ".[dev]"
 ```
 
 Run the UI:
@@ -183,7 +185,7 @@ Run the local verification suite:
 Build wheel and sdist:
 
 ```bash
-python3 -m build
+python3 -m build --no-isolation
 ```
 
 Build the Debian package:
@@ -396,8 +398,18 @@ dist/pages/
 Install the project in editable mode first:
 
 ```bash
-python3 -m pip install --user -e ".[dev]"
+python3 -m venv --system-site-packages .venv
+. .venv/bin/activate
+python3 -m pip install --no-build-isolation -e ".[dev]"
 ```
+
+### `pip install -e ".[dev]"` or `python3 -m build` tries to download `setuptools` or `wheel`
+
+Local Debian-family development works best with the distro-provided Python packaging tools already installed from `apt`. Recreate the virtualenv with `--system-site-packages`, then use `--no-build-isolation` so `pip` and `build` reuse those local packages instead of creating a temporary download-only environment.
+
+If `.venv` already exists without `--system-site-packages`, remove it and create it again before retrying.
+
+If the error mentions a proxy, clear stale proxy variables such as `http_proxy`, `https_proxy`, `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY` before retrying.
 
 ### `./scripts/build_deb.sh` reports missing packaging files
 

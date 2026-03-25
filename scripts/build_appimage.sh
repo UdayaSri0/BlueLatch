@@ -12,6 +12,7 @@ DESKTOP_FILE="$ROOT_DIR/packaging/desktop/io.github.UdayaSri.BlueLatch.desktop"
 ICON_FILE="$ROOT_DIR/assets/icons/scalable/apps/io.github.UdayaSri.BlueLatch.svg"
 APPDATA_FILE="$ROOT_DIR/packaging/appimage/io.github.UdayaSri.BlueLatch.appdata.xml"
 APP_RUN_FILE="$ROOT_DIR/packaging/appimage/AppRun"
+HOST_DIST_PACKAGES="/usr/lib/python3/dist-packages"
 
 fail() {
   echo "build_appimage.sh: $*" >&2
@@ -28,12 +29,27 @@ require_file() {
   [[ -f "$file_path" ]] || fail "required file is missing: $file_path"
 }
 
+ensure_build_backend_available() {
+  if python3 -c 'import setuptools, wheel' >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [[ -d "$HOST_DIST_PACKAGES" ]] && PYTHONPATH="$HOST_DIST_PACKAGES${PYTHONPATH:+:$PYTHONPATH}" \
+    python3 -c 'import setuptools, wheel' >/dev/null 2>&1; then
+    export PYTHONPATH="$HOST_DIST_PACKAGES${PYTHONPATH:+:$PYTHONPATH}"
+    return 0
+  fi
+
+  fail "python3 needs setuptools and wheel available locally; install python3-setuptools and python3-wheel or recreate the virtualenv with --system-site-packages"
+}
+
 require_command bash
 require_command curl
 require_command python3
 
 python3 -m pip --version >/dev/null 2>&1 || fail "python3 pip support is required"
 python3 -m build --version >/dev/null 2>&1 || fail "python3 -m build is required; install python3-build or pip install build"
+ensure_build_backend_available
 
 require_file "$DESKTOP_FILE"
 require_file "$ICON_FILE"
@@ -65,7 +81,7 @@ if command -v git >/dev/null 2>&1 && git -C "$ROOT_DIR" rev-parse --is-inside-wo
   SOURCE_DATE_EPOCH="$(git -C "$ROOT_DIR" log -1 --pretty=%ct)"
 fi
 
-python3 -m build --wheel --outdir "$WHEEL_DIR" "$ROOT_DIR"
+python3 -m build --wheel --no-isolation --outdir "$WHEEL_DIR" "$ROOT_DIR"
 WHEEL_PATH="$(find "$WHEEL_DIR" -maxdepth 1 -type f -name 'bluelatch-*.whl' | head -n 1)"
 [[ -n "$WHEEL_PATH" ]] || fail "wheel build did not produce a bluelatch wheel"
 
@@ -99,6 +115,7 @@ fi
 pushd "$BUILD_DIR" >/dev/null
 export DEPLOY_GTK_VERSION=4
 export LDAI_OUTPUT="$ARTIFACT_NAME"
+export LDAI_NO_APPSTREAM=1
 "$LINUXDEPLOY" \
   --appdir "$APPDIR" \
   --desktop-file "$DESKTOP_FILE" \

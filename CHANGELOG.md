@@ -8,42 +8,39 @@ The project follows Semantic Versioning.
 
 ### Summary
 
-- This release finishes the Linux desktop distribution story for Debian-family systems without changing BlueLatch core behavior.
+- This release prepares BlueLatch for real-world distribution on Debian-based Linux systems.
 
 ### Highlights
 
-- BlueLatch still auto-locks only, never auto-unlocks, and preserves the manual unlock override behavior.
-- Debian packaging is now complete and builds a real `bluelatch_0.1.1_amd64.deb` package from `packaging/debian/`.
-- AppImage packaging now emits a stable `BlueLatch-0.1.1-x86_64.AppImage` artifact with a portable launcher path.
+- Added proper Debian packaging for BlueLatch.
+- Improved AppImage build and release artifact naming.
+- Added release automation for `.deb`, AppImage, wheel, and source tarball.
+- Added APT repository publishing support for Ubuntu, Linux Mint, and Debian-based systems.
+- Improved packaging and installation documentation.
 
 ### Packaging and Distribution
 
-- Added a full Debian packaging tree under `packaging/debian/` using `pybuild` and pyproject-aware tooling.
-- Installed the desktop launcher, SVG icon, AppStream metadata, and packaged user service unit through Debian packaging.
-- Rewrote `scripts/build_deb.sh` to validate packaging inputs, stage a clean build tree, and place artifacts in `dist/debian/`.
-- Reworked `scripts/build_appimage.sh` to validate metadata, stage a clean AppDir, and place the final AppImage in `dist/`.
-- Added portable AppImage launcher wrappers so the packaged app no longer depends on a build-host-specific Python shebang.
-- Added release asset collection and checksum generation for wheel, sdist, Debian package, and AppImage outputs.
-- Added a signed GitHub Pages APT repository publishing flow using `reprepro` and GPG.
-- Split GitHub Actions into separate CI and tagged release workflows with explicit artifact paths and release publishing.
+- Users can now install BlueLatch using a Debian package.
+- AppImage releases are easier to download and run.
+- APT repository support has been prepared for simpler future upgrades.
+- Release artifacts now use cleaner naming and checksum support.
 
 ### Fixes
 
-- Fixed the failing Debian build path caused by the missing `packaging/debian/` directory.
-- Fixed inconsistent version reporting between package metadata and release artifacts by aligning all release-facing version references to `0.1.1`.
-- Fixed release-note publishing so tag builds use generated notes from the current changelog entry instead of a placeholder template.
-- Corrected the documented local development flow to use an editable install before running the app from source.
+- Fixed the Debian build failure caused by the missing `packaging/debian` structure.
+- Improved build script reliability and artifact collection.
+- Cleaned up release workflow expectations.
 
 ### Upgrade Notes
 
-- AppImage users should replace their existing AppImage with `BlueLatch-0.1.1-x86_64.AppImage` and keep it executable.
-- Debian and APT users can update through `apt`, Software Updater, or by installing the newer `.deb`.
-- The GitHub Pages APT repository uses a `signed-by` keyring setup and does not use `apt-key`.
+- AppImage users should replace the previous AppImage with the new release file.
+- Debian and APT users should install or upgrade through the package manager once the repository is published.
+- BlueLatch remains GNOME-first and keeps the same core auto-lock-only behaviour.
 
 ### Known Issues
 
-- BlueLatch remains GNOME-first and is not yet tuned for every non-GNOME session-lock backend.
-- The AppImage flow is intended for Debian-family systems with the expected desktop Bluetooth stack available.
+- BlueLatch is still primarily tuned for Ubuntu GNOME.
+- Behaviour may vary slightly across Bluetooth adapters and desktop environments.
 
 ## [0.1.0] - 2026-03-21
 
