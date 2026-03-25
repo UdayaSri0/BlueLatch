@@ -1,7 +1,7 @@
-bluelatch (0.1.1.9) unstable; urgency=medium
+bluelatch (0.1.2.0) unstable; urgency=medium
 
   * Fix release workflow Pages upload/deploy gating when APT site output is absent.
-  * Sync release metadata and documentation to version 0.1.1.9.
+  * Sync release metadata and documentation to version 0.1.2.0.
 
  -- Udaya Sri <105188685+UdayaSri0@users.noreply.github.com>  Wed, 25 Mar 2026 19:30:00 +0530
 
