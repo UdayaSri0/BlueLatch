@@ -106,18 +106,15 @@ class BluezClient:
                 BluezDevice(
                     object_path=object_path,
                     address=str(device_props.get("Address", "")),
-                    alias=str(
-                        device_props.get("Alias")
-                        or device_props.get("Name")
-                        or device_props.get("Address")
-                    ),
+                    alias=str(device_props.get("Alias") or ""),
+                    name=str(device_props.get("Name") or ""),
                     paired=bool(device_props.get("Paired", False)),
                     trusted=bool(device_props.get("Trusted", False)),
                     connected=bool(device_props.get("Connected", False)),
                     rssi=self._coerce_optional_int(device_props.get("RSSI")),
                 ),
             )
-        devices.sort(key=lambda item: (not item.connected, item.alias.lower()))
+        devices.sort(key=lambda item: (not item.connected, item.display_name.lower(), item.address.lower()))
         return devices
 
     def resolve_trusted_device(self, trusted_device: TrustedDevice) -> BluezDevice | None:

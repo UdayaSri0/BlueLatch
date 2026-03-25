@@ -61,7 +61,7 @@ class StatusPage(Gtk.Box):
         return True
 
     def _apply_status(self, status: StatusSnapshot) -> None:
-        device_name = status.trusted_device.alias or status.trusted_device.address or "Not configured"
+        device_name = status.trusted_device.alias or status.trusted_device.name or status.trusted_device.address or "Not configured"
         self.device_row.set_subtitle(device_name)
         self.bluetooth_row.set_subtitle(
             f"{'Available' if status.bluetooth_available else 'Unavailable'} / "

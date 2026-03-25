@@ -46,6 +46,7 @@ class TrustedDevice:
     address: str | None = None
     object_path: str | None = None
     alias: str | None = None
+    name: str | None = None
     paired: bool = False
     trusted: bool = False
     connected: bool = False
@@ -56,6 +57,7 @@ class TrustedDevice:
             "address": self.address,
             "object_path": self.object_path,
             "alias": self.alias,
+            "name": self.name,
             "paired": self.paired,
             "trusted": self.trusted,
             "connected": self.connected,
@@ -69,6 +71,7 @@ class TrustedDevice:
             address=payload.get("address"),
             object_path=payload.get("object_path"),
             alias=payload.get("alias"),
+            name=payload.get("name"),
             paired=bool(payload.get("paired", False)),
             trusted=bool(payload.get("trusted", False)),
             connected=bool(payload.get("connected", False)),

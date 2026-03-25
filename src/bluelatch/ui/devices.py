@@ -87,7 +87,7 @@ class DevicesPage(Gtk.Box):
         trusted_address = self.config_manager.load().bluetooth.trusted_device.address
         for device in devices:
             row = Adw.ActionRow(
-                title=device.alias or device.address,
+                title=device.display_name,
                 subtitle=(
                     f"{device.address} | "
                     f"{'Connected' if device.connected else 'Disconnected'} | "
@@ -95,6 +95,9 @@ class DevicesPage(Gtk.Box):
                     f"{'Paired' if device.paired else 'Unpaired'}"
                 ),
             )
+            row.set_title_lines(1)
+            row.set_subtitle_lines(1)
+            row.set_subtitle_selectable(False)
             row.device = device  # type: ignore[attr-defined]
             if trusted_address and trusted_address.upper() == device.address.upper():
                 badge = Gtk.Label(label="Trusted")
@@ -130,7 +133,7 @@ class DevicesPage(Gtk.Box):
             return
         try:
             self.bluez.pair_device(self.selected_device.object_path)
-            self.status_label.set_text(f"Pairing started with {self.selected_device.alias}.")
+            self.status_label.set_text(f"Pairing started with {self.selected_device.display_name}.")
             self.refresh()
         except Exception as exc:
             self.status_label.set_text(f"Pairing failed: {exc}")
@@ -141,7 +144,7 @@ class DevicesPage(Gtk.Box):
             return
         try:
             self.bluez.trust_device(self.selected_device.object_path, True)
-            self.status_label.set_text(f"{self.selected_device.alias} marked as trusted.")
+            self.status_label.set_text(f"{self.selected_device.display_name} marked as trusted.")
             self.refresh()
         except Exception as exc:
             self.status_label.set_text(f"Could not mark device as trusted: {exc}")
@@ -157,7 +160,8 @@ class DevicesPage(Gtk.Box):
             config.bluetooth.trusted_device = TrustedDevice(
                 address=device.address,
                 object_path=device.object_path,
-                alias=device.alias,
+                alias=device.display_name,
+                name=device.name,
                 paired=device.paired,
                 trusted=device.trusted,
                 connected=device.connected,
@@ -166,5 +170,5 @@ class DevicesPage(Gtk.Box):
             return config
 
         self.config_manager.update(mutator)
-        self.status_label.set_text(f"{device.alias} is now the trusted phone.")
+        self.status_label.set_text(f"{device.display_name} is now the trusted phone.")
         self.refresh()

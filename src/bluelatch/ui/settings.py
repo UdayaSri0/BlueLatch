@@ -33,23 +33,35 @@ LOCK_METHODS = [
 
 class SettingsPage(Gtk.Box):
     def __init__(self, config_manager: ConfigManager, startup_manager: StartupManager) -> None:
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.config_manager = config_manager
         self.startup_manager = startup_manager
-        self.set_margin_top(18)
-        self.set_margin_bottom(18)
-        self.set_margin_start(18)
-        self.set_margin_end(18)
+        self.set_margin_top(0)
+        self.set_margin_bottom(0)
+        self.set_margin_start(0)
+        self.set_margin_end(0)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_vexpand(True)
+        scrolled.set_hscrollbar_policy(Gtk.PolicyType.NEVER)
+
+        clamp = Adw.Clamp(maximum_size=860, tightening_threshold=640)
+        clamp.set_margin_top(18)
+        clamp.set_margin_bottom(18)
+        clamp.set_margin_start(18)
+        clamp.set_margin_end(30)
+
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
 
         title = Gtk.Label(label="Protection Settings")
         title.add_css_class("title-2")
         title.set_xalign(0)
-        self.append(title)
+        content.append(title)
 
         self.status_label = Gtk.Label(label="")
         self.status_label.set_xalign(0)
         self.status_label.set_wrap(True)
-        self.append(self.status_label)
+        content.append(self.status_label)
 
         self.protection_group = Adw.PreferencesGroup(title="Protection")
         self.enable_switch = self._switch_row(self.protection_group, "Enable protection")
@@ -66,11 +78,15 @@ class SettingsPage(Gtk.Box):
         self.near_spin = self._spin_row(self.protection_group, "Near RSSI threshold", -100, -20, 1)
         self.far_spin = self._spin_row(self.protection_group, "Far RSSI threshold", -120, -20, 1)
         self.window_spin = self._spin_row(self.protection_group, "Smoothing window", 1, 20, 1)
-        self.append(self.protection_group)
+        content.append(self.protection_group)
 
         save_button = Gtk.Button(label="Save Settings")
         save_button.connect("clicked", self._save)
-        self.append(save_button)
+        content.append(save_button)
+
+        clamp.set_child(content)
+        scrolled.set_child(clamp)
+        self.append(scrolled)
 
         self.reload()
 
@@ -130,6 +146,7 @@ class SettingsPage(Gtk.Box):
     def _switch_row(group: Adw.PreferencesGroup, title: str) -> Gtk.Switch:
         row = Adw.ActionRow(title=title)
         widget = Gtk.Switch()
+        widget.set_valign(Gtk.Align.CENTER)
         row.add_suffix(widget)
         row.set_activatable_widget(widget)
         group.add(row)
@@ -139,6 +156,8 @@ class SettingsPage(Gtk.Box):
     def _dropdown_row(group: Adw.PreferencesGroup, title: str, items: list[str]) -> Gtk.DropDown:
         row = Adw.ActionRow(title=title)
         widget = Gtk.DropDown.new_from_strings(items)
+        widget.set_valign(Gtk.Align.CENTER)
+        widget.set_size_request(160, -1)
         row.add_suffix(widget)
         group.add(row)
         return widget
@@ -160,6 +179,8 @@ class SettingsPage(Gtk.Box):
             page_increment=step * 10,
         )
         widget = Gtk.SpinButton(adjustment=adjustment)
+        widget.set_valign(Gtk.Align.CENTER)
+        widget.set_width_chars(6)
         row.add_suffix(widget)
         group.add(row)
         return widget
