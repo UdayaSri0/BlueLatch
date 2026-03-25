@@ -4,7 +4,7 @@ All notable changes to BlueLatch are tracked here.
 
 The project follows Semantic Versioning.
 
-## [0.1.1.7] - 2026-03-25
+## [0.1.1.8] - 2026-03-25
 
 ### Summary
 
@@ -35,6 +35,7 @@ The project follows Semantic Versioning.
 - Fixed the AppImage GTK plugin failure on Ubuntu 24.04 runners by installing `libgtk-4-dev` so `gtk4.pc` is available.
 - Improved build script reliability, artifact collection, and troubleshooting guidance.
 - Cleaned up release workflow expectations.
+- Fixed release workflow failures when APT signing secrets are not configured by conditionally skipping APT publishing.
 
 ### Upgrade Notes
 
