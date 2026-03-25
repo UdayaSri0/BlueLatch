@@ -8,6 +8,8 @@ on:
 jobs:
   build-release:
     runs-on: ubuntu-24.04
+    outputs:
+      pages_enabled: ${{ steps.apt_signing.outputs.enabled }}
     permissions:
       contents: write
     steps:
@@ -172,6 +174,7 @@ jobs:
             dist/pages/**
 
       - name: Upload Pages artifact
+        if: steps.apt_signing.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist/pages
@@ -186,6 +189,7 @@ jobs:
 
   deploy-pages:
     needs: build-release
+    if: needs.build-release.outputs.pages_enabled == 'true'
     runs-on: ubuntu-24.04
     permissions:
       pages: write
