@@ -1,3 +1,18 @@
+<<<<<<< ours
+<<<<<<< ours
+bluelatch (0.1.2.1) unstable; urgency=medium
+
+  * Fix the GTK4 settings startup regression that made the UI exit immediately.
+  * Add startup diagnostics and log fatal launcher failures to the BlueLatch log file.
+  * Keep the UI running when background-agent spawning fails and surface a warning.
+  * Sync release metadata and documentation to version 0.1.2.1.
+
+ -- Udaya Sri <105188685+UdayaSri0@users.noreply.github.com>  Thu, 26 Mar 2026 12:20:00 +0530
+
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
 bluelatch (0.1.2.0) unstable; urgency=medium
 
   * Fix release workflow Pages upload/deploy gating when APT site output is absent.

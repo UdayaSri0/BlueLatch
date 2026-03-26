@@ -29,7 +29,7 @@ class BlueLatchWindow(Adw.ApplicationWindow):
         self.set_title("BlueLatch")
         self.set_default_size(1080, 760)
 
-        spawn_background_agent()
+        spawn_background_agent(application.logger)
 
         self.config_manager = ConfigManager()
         self.runtime_store = RuntimeStore()

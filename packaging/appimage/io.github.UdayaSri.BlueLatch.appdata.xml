@@ -19,6 +19,14 @@
   <url type="bugtracker">https://github.com/UdayaSri0/BlueLatch/issues</url>
   <content_rating type="oars-1.1"/>
   <releases>
+<<<<<<< ours
+<<<<<<< ours
+    <release version="0.1.2.1" date="2026-03-26"/>
+=======
     <release version="0.1.2.0" date="2026-03-25"/>
+>>>>>>> theirs
+=======
+    <release version="0.1.2.0" date="2026-03-25"/>
+>>>>>>> theirs
   </releases>
 </component>

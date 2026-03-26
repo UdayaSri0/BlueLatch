@@ -337,10 +337,19 @@ def run_agent() -> int:
     return agent.run()
 
 
-def spawn_background_agent() -> None:
-    subprocess.Popen(
-        [sys.executable, "-m", "bluelatch.main", "--agent"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,
-    )
+def spawn_background_agent(logger: logging.Logger | None = None) -> bool:
+    stderr_target = None if sys.stderr is not None and sys.stderr.isatty() else subprocess.DEVNULL
+    try:
+        subprocess.Popen(
+            [sys.executable, "-m", "bluelatch.main", "--agent"],
+            stdout=subprocess.DEVNULL,
+            stderr=stderr_target,
+            start_new_session=True,
+        )
+    except Exception:
+        if logger is not None:
+            logger.warning("Failed to start the BlueLatch background agent", exc_info=True)
+        else:
+            print("BlueLatch warning: failed to start the background agent", file=sys.stderr)
+        return False
+    return True

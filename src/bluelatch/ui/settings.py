@@ -43,7 +43,15 @@ class SettingsPage(Gtk.Box):
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
+<<<<<<< ours
+<<<<<<< ours
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+=======
         scrolled.set_hscrollbar_policy(Gtk.PolicyType.NEVER)
+>>>>>>> theirs
+=======
+        scrolled.set_hscrollbar_policy(Gtk.PolicyType.NEVER)
+>>>>>>> theirs
 
         clamp = Adw.Clamp(maximum_size=860, tightening_threshold=640)
         clamp.set_margin_top(18)

@@ -4,6 +4,21 @@ All notable changes to BlueLatch are tracked here.
 
 The project follows Semantic Versioning.
 
+<<<<<<< ours
+<<<<<<< ours
+## [0.1.2.1] - 2026-03-26
+
+### Summary
+
+- Targeted startup-fix release for the desktop launcher and packaged entry points on Ubuntu 24.04 GNOME.
+
+### Fixes
+
+- Repaired the GTK4 settings-page startup regression introduced in `777a248` by replacing the invalid horizontal-scrollbar call with a GTK4-compatible scrolled-window policy.
+- Added shared startup diagnostics so fatal UI and agent startup failures now print a clear stderr message, write the exception to the BlueLatch log file, and return a non-zero exit code.
+- Preserved the recent trusted-device naming and settings-layout improvements while making background-agent spawn failures warn instead of silently taking the UI down.
+- Synchronized release metadata and docs to `0.1.2.1` across app version, changelog, Debian packaging, AppStream metadata, and README examples.
+
 ## [0.1.2.0] - 2026-03-25
 
 ### Summary
@@ -12,6 +27,26 @@ The project follows Semantic Versioning.
 
 ### Fixes
 
+=======
+## [0.1.2.0] - 2026-03-25
+
+### Summary
+
+- Focused bug-fix release for trusted-device naming, settings layout stability, and release metadata synchronization.
+
+### Fixes
+
+>>>>>>> theirs
+=======
+## [0.1.2.0] - 2026-03-25
+
+### Summary
+
+- Focused bug-fix release for trusted-device naming, settings layout stability, and release metadata synchronization.
+
+### Fixes
+
+>>>>>>> theirs
 - Corrected BlueZ trusted-device title rendering so MAC-like aliases are no longer shown as friendly names by default.
 - Added Bluetooth display-name fallback logic to prefer human-readable `Name`/`Alias` values and use `Unnamed device` when needed.
 - Preserved complete trusted-device identity persistence (`address`, `object_path`) while storing a friendly display label for UI status views.

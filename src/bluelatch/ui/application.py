@@ -20,13 +20,21 @@ class BlueLatchApplication(Adw.Application):
         super().__init__(application_id="io.github.UdayaSri.BlueLatch")
         self.window: BlueLatchWindow | None = None
         self.logger = logging.getLogger("bluelatch.ui")
+        self.startup_error: Exception | None = None
 
     def do_activate(self) -> None:
-        if self.window is None:
-            self.window = BlueLatchWindow(self)
-        self.window.present()
+        try:
+            if self.window is None:
+                self.window = BlueLatchWindow(self)
+            self.window.present()
+        except Exception as exc:
+            self.startup_error = exc
+            self.quit()
 
 
 def run_ui() -> int:
     app = BlueLatchApplication()
-    return app.run(sys.argv)
+    exit_code = app.run(sys.argv)
+    if app.startup_error is not None:
+        raise app.startup_error
+    return exit_code
